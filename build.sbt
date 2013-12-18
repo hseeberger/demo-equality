@@ -4,7 +4,7 @@ name := "demo-equality"
 
 version := "1.0.0"
 
-scalaVersion := "2.10.2"
+scalaVersion := Version.scala
 
 libraryDependencies ++= Dependencies.demoEquality
 

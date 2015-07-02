@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Heiko Seeberger
+ * Copyright 2015 Heiko Seeberger
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package name.heikoseeberger.demoequality
+package de.heikoseeberger.demoequality
 
 /**
  * By importing `SimpleEquality._` you get '''type-safe''' yet '''unbalanced''' equality:
@@ -45,7 +45,6 @@ object SimpleEquality {
     /**
      * Type-safe and unbalanced `===` operator.
      */
-    def ===(right: A): Boolean =
-      left == right
+    def ===(right: A): Boolean = left == right
   }
 }

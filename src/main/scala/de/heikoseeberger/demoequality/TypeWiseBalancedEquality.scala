@@ -14,34 +14,39 @@
  * limitations under the License.
  */
 
-package name.heikoseeberger.demoequality
+package de.heikoseeberger.demoequality
 
 import scala.annotation.implicitNotFound
 
 /**
- * By importing `ViewWiseBalancedEquality._` you get '''type-safe''' and '''view-wise balanced''' equality:
+ * By importing `TypeWiseBalancedEquality._` you get '''type-safe''' and '''type-wise balanced''' equality:
  *
  * {{{
- * import name.heikoseeberger.demoequality.ViewWiseBalancedEquality._
+ * import name.heikoseeberger.demoequality.TypeWiseBalancedEquality._
  *
  * 123 === 666 // false
  * "a" === "a" // true
  * 123 === "a" // won't compile!
  * }}}
  *
- * This equality is balanced with respect to implicit conversions,
+ * This equality is balanced with respect to subtyping,
  * hence `===` works (compiles) for any two arguments on the left and right,
- * whose types are in a implicit conversion relationship (which includes a subtype relationship),
- * i.e. one can be viewed as the other:
+ * whose types are in a subtype relationship (which includes type equality):
  *
  * {{{
  * Seq(1, 2, 3) === List(1, 2, 3)
  * List(1, 2, 3) === Seq(1, 2, 3)
- * 1L === 1
- * 1 === 1L
+ * }}}
+ *
+ * Yet it doesn't work (compile) for two arguments on the left and right,
+ * whose types are in an implicit conversion relationship:
+ *
+ * {{{
+ * 1L === 1 // won't compile!
+ * 1 === 1L // won't compile!
  * }}}
  */
-object ViewWiseBalancedEquality {
+object TypeWiseBalancedEquality {
 
   /**
    * Extends any type with a type-safe and balanced `===` operator.
@@ -51,14 +56,13 @@ object ViewWiseBalancedEquality {
     /**
      * Type-safe and balanced `===` operator.
      */
-    def ===[R](right: R)(implicit equality: Equality[L, R]): Boolean =
-      equality.areEqual(left, right)
+    def ===[R](right: R)(implicit equality: Equality[L, R]): Boolean = equality.areEqual(left, right)
   }
 
   /**
    * Type-class representing equality of two arguments with arbitrary respective types.
    */
-  @implicitNotFound("ViewWiseBalancedEquality requires ${L} and ${R} to be in an implicit conversion relationship, i.e. one can be viewed as the other!")
+  @implicitNotFound("TypeWiseBalancedEquality requires ${L} and ${R} to be in a subtype relationship!")
   sealed trait Equality[L, R] {
 
     /**
@@ -69,16 +73,15 @@ object ViewWiseBalancedEquality {
 
   /**
    * Provides type-class instances based on natural equality for any two types
-   * in a `L => R` or `R => L` implicit conversion relationship.
+   * in a `L <: R` or `R <: L` relationship.
    */
   object Equality extends LowPriorityEqualityImplicits {
 
     /**
      * Provides a type-class instance based on natural equality for any two types
-     * in a `R => L` implicit conversion relationship.
+     * in a `R <: L` relationship.
      */
-    implicit def rightToLeftEquality[L, R](implicit view: R => L): Equality[L, R] =
-      new RightToLeftViewEquality(view)
+    implicit def rightSubtypeOfLeftEquality[L, R <: L]: Equality[L, R] = anyEquality.asInstanceOf[Equality[L, R]]
   }
 
   /**
@@ -88,21 +91,12 @@ object ViewWiseBalancedEquality {
 
     /**
      * Provides a type-class instance based on natural equality for any two types
-     * in a `L => R` implicit conversion relationship.
+     * in a `L <: R` relationship.
      */
-    implicit def leftToRightEquality[L, R](implicit view: L => R): Equality[L, R] =
-      new LeftToRightViewEquality(view)
+    implicit def leftSubtypeOfRightEquality[R, L <: R]: Equality[L, R] = anyEquality.asInstanceOf[Equality[L, R]]
   }
 
-  private class LeftToRightViewEquality[L, R](view: L => R) extends Equality[L, R] {
-
-    override def areEqual(left: L, right: R): Boolean =
-      view(left) == right
-  }
-
-  private class RightToLeftViewEquality[L, R](view: R => L) extends Equality[L, R] {
-
-    override def areEqual(left: L, right: R): Boolean =
-      left == view(right)
+  private val anyEquality = new Equality[Any, Any] {
+    override def areEqual(left: Any, right: Any) = left == right
   }
 }

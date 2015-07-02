@@ -1,20 +1,20 @@
-organization := "name.heikoseeberger"
+organization := "de.heikoseeberger"
+name         := "demo-equality"
+version      := "1.0.0"
 
-name := "demo-equality"
-
-version := "1.0.0"
-
-scalaVersion := Version.scala
-
-libraryDependencies ++= Dependencies.demoEquality
-
-scalacOptions ++= List(
+scalaVersion  := "2.11.7"
+scalacOptions := List(
   "-unchecked",
   "-deprecation",
-  "-Xlint",
-  "-language:_",
-  "-target:jvm-1.6",
-  "-encoding", "UTF-8"
+  "-target:jvm-1.8",
+  "-language:_"
 )
 
-(initialCommands in Compile) := "import name.heikoseeberger.demoequality._"
+import scalariform.formatter.preferences._
+scalariformSettings
+ScalariformKeys.preferences := ScalariformKeys.preferences.value
+  .setPreference(AlignSingleLineCaseStatements, true)
+  .setPreference(AlignSingleLineCaseStatements.MaxArrowIndent, 100)
+  .setPreference(DoubleIndentClassDeclaration, true)
+
+initialCommands := "import de.heikoseeberger.demoequality._"
